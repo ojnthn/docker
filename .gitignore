@@ -1,3 +1,5 @@
 redis/
 mongo/
 mysql/
+.DS_Store
+docker-files/.DS_Store
