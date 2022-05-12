@@ -1,0 +1,88 @@
+version : '3.3'
+services:
+  php73:
+    container_name: 'php.73'
+    build:
+      context: .
+      dockerfile: ./docker-files/DockerfilePHP73
+    ports:
+    - 8100:80
+    volumes:
+    - /Users/jonathanreichel/Desenvolvimento/php:/var/www/html
+    extra_hosts: 
+      - "db.trator.w2o:192.168.2.122"
+
+  php56:
+    container_name: 'php.56'
+    build: 
+      context: .
+      dockerfile: ./docker-files/DockerfilePHP56
+    ports:
+    - 8000:80
+    volumes:
+    - /Users/jonathanreichel/Desenvolvimento/php:/var/www/html
+    extra_hosts: 
+      - "db.trator.w2o:192.168.2.122"
+
+  mysql: 
+    container_name: 'database.mysql'
+    image: mysql:5.7
+    platform: linux/amd64
+    command: mysqld --sql_mode="STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION"
+    ports: 
+    - 3306:3306
+    volumes:    
+    - ./mysql:/var/lib/mysql
+    environment:
+    - MYSQL_ROOT_PASSWORD=root
+
+  redis:
+    image: redis
+    container_name: 'database.redis'
+    command: redis-server
+    ports:
+      - "7002:6379"
+
+  mongo:
+    container_name: 'database.mongo'
+    image: mongo
+    ports:
+      - 27017:27017
+    volumes: 
+      - ./mongo:/data/db
+
+  phpmyadmin:
+    container_name: 'sgbd.phpmyadmin'
+    image: phpmyadmin/phpmyadmin
+    links:
+    - mysql
+    environment:
+    - PMA_HOST=mysql
+    - PMA_PORT=3306
+    - PMA_ARBITRARY=1
+    restart: always
+    ports:
+    - 8081:80
+
+  mongo-express:
+    container_name: 'sgbd.mongo-express'
+    image: mongo-express
+    ports:
+      - 8082:8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: root
+
+  # sqlsrv:
+  #   container_name: 'database.sqlsrv'
+  #   image: mcr.microsoft.com/mssql/server
+  #   ports: 
+  #   - 1433:1433
+  #   volumes:    
+  #   - ./sqlsrv/data:/var/opt/mssql/data
+  #   - ./sqlsrv/log:/var/opt/mssql/log
+  #   - ./sqlsrv/secrets:/var/opt/mssql/secrets
+  #   environment:
+  #   - SA_PASSWORD=Pass@word
+  #   - ACCEPT_EULA=Y
+  #   - MSSQL_PID=Express

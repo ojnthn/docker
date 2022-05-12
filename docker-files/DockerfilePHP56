@@ -1,0 +1,57 @@
+FROM php:5.6-apache
+
+RUN a2enmod rewrite
+
+#PHP, extenções e outros pacote necessarios
+RUN apt-get update && apt-get install -y --no-install-recommends libpng-dev libjpeg-dev libjpeg62-turbo libmcrypt4 libmcrypt-dev libcurl3-dev libxml2-dev libxslt-dev libicu-dev g++ && rm -rf /var/lib/apt/lists/*
+
+#GRPC
+RUN apt-get update && apt-get install -y -q git rake ruby-ronn zlib1g-dev && apt-get clean
+
+RUN cd /usr/local/bin && curl -sS https://getcomposer.org/installer | php
+RUN cd /usr/local/bin && mv composer.phar composer
+
+RUN apt-get update  \
+    && apt-get install -y zlib1g-dev \
+    && docker-php-ext-configure gd --with-jpeg-dir=/usr/lib \
+    && docker-php-ext-install gd \
+    && docker-php-ext-install zip \
+    && docker-php-ext-install mysql \
+    && docker-php-ext-install exif \
+    && apt-get purge --auto-remove -y libjpeg-dev libmcrypt-dev libcurl3-dev libxml2-dev libicu-dev \
+    && docker-php-ext-install mysqli \
+    && docker-php-ext-install pdo \
+    && docker-php-ext-install pdo_mysql \
+    && apt-get autoremove
+
+# wkhtmltopdf:
+RUN apt-get update && apt-get install -y libxrender1 libfontconfig1 libx11-dev libjpeg62 libxtst6 wget \
+    && mkdir wkhtmltopdf_download \
+    && cd wkhtmltopdf_download \
+    && wget https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox_0.12.6-1.stretch_arm64.deb \
+    && apt install ./wkhtmltox_0.12.6-1.stretch_arm64.deb -y \
+    && cd .. \
+    && rm -rf wkhtmltopdf_download 
+    
+RUN apt-get update && apt-get install -y libc-client-dev libkrb5-dev && rm -r /var/lib/apt/lists/*
+RUN docker-php-ext-configure imap --with-kerberos --with-imap-ssl \
+    && docker-php-ext-install imap
+    
+#SOAP
+RUN apt-get update -y \
+  && apt-get install -y \
+     libxml2-dev \
+  && apt-get clean -y \
+  && docker-php-ext-install soap  
+  
+#IMAGEMAGICK
+RUN apt-get update && apt-get install -y \
+    libmagickwand-dev --no-install-recommends \
+    && pecl install imagick \
+    && docker-php-ext-enable imagick
+    
+RUN apt-get update -y
+RUN apt-get install -y libgmp-dev re2c libmhash-dev libmcrypt-dev file
+RUN ln -s /usr/include/x86_64-linux-gnu/gmp.h /usr/local/include/
+
+RUN docker-php-ext-install calendar
