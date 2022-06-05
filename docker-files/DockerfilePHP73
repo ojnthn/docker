@@ -71,3 +71,7 @@ RUN docker-php-ext-configure intl \
     && docker-php-ext-install \
     intl \
     gettext
+
+COPY ./etc/xdebug.ini $PHP_INI_DIR/conf.d/
+RUN pecl install xdebug
+RUN docker-php-ext-enable xdebug
